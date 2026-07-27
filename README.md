@@ -54,14 +54,39 @@ email on its own, so it needs a form relay:
 1. Sign up free at [formspree.io](https://formspree.io) (50 submissions/month
    free; Basin and Getform work identically).
 2. Create a form, point it at `help@stakestherapy.com`.
-3. In `contact.html`, find `YOUR_FORM_ID` and replace it with the ID they give you:
+3. **Confirm the destination email** — Formspree sends a verification email
+   to that address, and won't deliver anything until someone clicks it.
+4. In `contact.html`, find `YOUR_FORM_ID` and replace it with the ID they give you:
 
    ```html
-   <form class="form" action="https://formspree.io/f/xabcdefg" method="POST">
+   <form class="form" id="contact-form" action="https://formspree.io/f/xabcdefg" method="POST">
    ```
 
 Phone and email links work immediately either way — the form is a convenience,
 not the only path in.
+
+**The form submits in the background (AJAX), not as a normal page post.**
+When it's clicked, JavaScript intercepts the submit, sends it via `fetch()`,
+and swaps the form for a thank-you message in place — the page never
+navigates anywhere. This is deliberate: Formspree's free plan can only
+redirect to *their* branded confirmation page, not a page on your own site
+(that feature is paid-only). Submitting via `fetch()` sidesteps the
+limitation entirely, since there's no redirect to configure — the browser
+just never leaves `contact.html`.
+
+If the submission fails (wrong form ID, Formspree outage, email not yet
+confirmed), the error is caught and shown inline with a fallback to call or
+email directly — it never fails silently.
+
+The logic lives in the `<script>` block at the bottom of `contact.html`. One
+thing worth knowing if you ever edit it: **the status-message variable is
+named `formStatus`, not `status`.** That's not a style choice — `status` is
+a reserved property on the global `window` object (left over from very old
+browsers' status-bar text), and a plain `var status = ...` at the top level
+of a script silently collides with it instead of holding your element. It's
+a classic, hard-to-spot bug. Same caution applies to `name`, `location`,
+`top`, `parent`, and a handful of other `window` properties — avoid them as
+top-level variable names in any script.
 
 **The form is deliberately narrow.** It asks for name, email, phone, service
 type, and best times to reach you. Nothing else. The free-text box is labelled
@@ -71,6 +96,15 @@ widen it. The form's job is "here's who I am, call me back" — not intake.
 
 Formspree's free tier will not sign a BAA. Keeping clinical detail out of the
 form is what makes it appropriate, and the wording is doing that work.
+
+### `thanks.html`
+
+This page exists as a standalone thank-you page but **isn't part of the
+active flow** — the form no longer redirects to it (see above). It's kept
+around in case you want to link to it from somewhere else, or switch back to
+a redirect-based flow later (e.g. if you upgrade Formspree to a paid plan,
+which does support custom redirects via a `_next` field). Safe to delete if
+you don't have a use for it.
 
 ### 2. Nothing else — that's it
 

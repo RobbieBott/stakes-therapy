@@ -73,52 +73,60 @@
              2. Replace YOUR_FORM_ID below with the ID they give you.
              Until then the form will not deliver. Phone and email
              below always work regardless.
+
+             This submits via JavaScript (fetch) instead of a normal page
+             post, so there's no redirect and no page reload — the form
+             swaps in place for a thank-you message. See the script at
+             the bottom of this file for the mechanics.
              ──────────────────────────────────────────────────────────── -->
-        <form class="form"
-              action="https://formspree.io/f/xlgqanan"
-              method="POST">
+        <div id="contact-form-wrap">
+          <form class="form" id="contact-form"
+                action="https://formspree.io/f/YOUR_FORM_ID"
+                method="POST">
 
-          <div class="field">
-            <label for="name">Your name</label>
-            <input type="text" id="name" name="name" autocomplete="name" required>
-          </div>
+            <div class="field">
+              <label for="name">Your name</label>
+              <input type="text" id="name" name="name" autocomplete="name" required>
+            </div>
 
-          <div class="field">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" autocomplete="email" required>
-          </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" autocomplete="email" required>
+            </div>
 
-          <div class="field">
-            <label for="phone">Phone (optional)</label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel">
-          </div>
+            <div class="field">
+              <label for="phone">Phone (optional)</label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel">
+            </div>
 
-          <div class="field">
-            <label for="service">What are you looking for?</label>
-            <select id="service" name="service">
-              <option>Individual therapy</option>
-              <option>Couples therapy</option>
-              <option>Group therapy</option>
-              <option>Clinical supervision &amp; consulting</option>
-              <option>Not sure yet</option>
-            </select>
-          </div>
+            <div class="field">
+              <label for="service">What are you looking for?</label>
+              <select id="service" name="service">
+                <option>Individual therapy</option>
+                <option>Couples therapy</option>
+                <option>Group therapy</option>
+                <option>Clinical supervision &amp; consulting</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
 
-          <div class="field">
-            <label for="message">Best times to reach you</label>
-            <textarea id="message" name="message" rows="5" placeholder="e.g. weekday mornings, or after 5pm"></textarea>
-          </div>
+            <div class="field">
+              <label for="message">Best times to reach you</label>
+              <textarea id="message" name="message" rows="5" placeholder="e.g. weekday mornings, or after 5pm"></textarea>
+            </div>
 
-          <input type="hidden" name="_subject" value="New appointment request — stakestherapy.com">
-          <input type="hidden" name="_next" value="https://stakestherapy.com/thanks.html">
+            <input type="hidden" name="_subject" value="New appointment request — stakestherapy.com">
 
-          <button class="btn btn--solid" type="submit">Send message</button>
+            <button class="btn btn--solid" type="submit" id="contact-submit">Send message</button>
 
-          <p class="form__note">
-            You'll get a reply within one business day. If you'd rather not use a
-            form, call <a href="tel:+13373623380">(337) 362-3380</a>.
-          </p>
-        </form>
+            <p class="form__note">
+              You'll get a reply within one business day. If you'd rather not use a
+              form, call <a href="tel:+13373623380">(337) 362-3380</a>.
+            </p>
+
+            <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </div>
       </div>
 
       <!-- Details -->
@@ -232,6 +240,56 @@
   });
 
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Contact form — submits in the background so the page never leaves
+  // contact.html. Formspree's free plan ignores redirect instructions,
+  // so this replaces the form in place instead of navigating anywhere.
+  var form = document.getElementById('contact-form');
+  var formStatus = document.getElementById('form-status');
+  var submitBtn = document.getElementById('contact-submit');
+  var wrap = document.getElementById('contact-form-wrap');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    formStatus.textContent = '';
+    formStatus.className = 'form__status';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(function (response) {
+        if (response.ok) {
+          wrap.innerHTML =
+            '<div class="form__success">' +
+              '<p class="eyebrow">Message sent</p>' +
+              '<h3>Thank you — we\'ll be in touch soon.</h3>' +
+              '<p>You\'ll hear back within one business day. If it\'s urgent, ' +
+              'call <a href="tel:+13373623380">(337) 362-3380</a> during office hours.</p>' +
+            '</div>';
+          wrap.setAttribute('tabindex', '-1');
+          wrap.focus();
+        } else {
+          return response.json().then(function (data) {
+            throw new Error(
+              (data && data.errors && data.errors.map(function (er) { return er.message; }).join(', ')) ||
+              'Something went wrong.'
+            );
+          });
+        }
+      })
+      .catch(function () {
+        formStatus.textContent =
+          'Something went wrong sending that — please call (337) 362-3380 or email help@stakestherapy.com instead.';
+        formStatus.className = 'form__status form__status--error';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send message';
+      });
+  });
 </script>
 
 </body>

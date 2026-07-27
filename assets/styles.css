@@ -710,6 +710,21 @@ p:last-child { margin-bottom: 0; }
 
 .form .btn { justify-self: start; margin-top: 0.4rem; }
 
+.form__status {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  min-height: 1.3em;
+}
+.form__status--error { color: #A23B2E; }
+
+.form__success {
+  border-top: 2px solid var(--sage);
+  padding-top: 1.4rem;
+}
+.form__success h3 { margin-bottom: 0.6rem; }
+.form__success p { color: var(--ink-soft); }
+.form__success:focus { outline: none; }
+
 /* ------------------------------------------------------------- Footer -- */
 
 .footer {
