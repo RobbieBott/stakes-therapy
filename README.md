@@ -210,8 +210,9 @@ the `<div class="breath">` block in `index.html`.
 
 ## Before you launch
 
-- [ ] Confirm the Carencro address is current (the old site said "Lafayette, LA"
-      in the footer and Carencro on the contact page)
+- [x] Address removed — practice is telehealth-only, based in Lafayette, LA,
+      serving all of Louisiana virtually. Updated on home, FAQ, contact, and
+      all page titles/meta descriptions.
 - [ ] Confirm office hours
 - [ ] Ask Sheena to review the About copy on `index.html` — it's lightly edited
       from her original text, and it should sound like her
